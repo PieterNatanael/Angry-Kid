@@ -11,7 +11,8 @@ import SwiftUI
 struct Angry_KidApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(dataStore: DataStore())
+
         }
     }
 }
