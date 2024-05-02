@@ -295,6 +295,7 @@ struct ShowExplainView: View {
 //                .cornerRadius(15.0)
 //                .padding()
                 
+                
                 //ads end
                 
                 
