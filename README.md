@@ -9,6 +9,8 @@ Email Contact: If you have any questions or concerns about the app, you can reac
 Updates: Periodically, we may release updates to improve app functionality or address any issues. These updates may require access to device features such as internet connectivity or storage, but they do not involve data collection beyond what is necessary for app functionality.
 By using Angry Kid, you agree to abide by these policies and understand that your data remains private and secure within the app.
 
+Developer : Pieter Yoshua Natanael
+
 Chinese (Simplified):
 用户政策
 
