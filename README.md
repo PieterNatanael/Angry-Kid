@@ -1,4 +1,20 @@
-User Policy
+Angry Kid is a powerful tool designed to help children manage their emotions effectively. It provides a safe space for kids to journal their anger levels and details, fostering self-awareness and emotional regulation. The app is not just for kids; it's a bridge between children and parents, enabling easy communication and understanding of emotions.
+
+Key Features:
+
+•Anger Journaling: Children can log their anger levels (low, medium, high) and write about what triggered their emotions.
+•Timestamped Entries: Each entry is timestamped, allowing parents to track patterns and understand the timing of their child's emotions.
+•Emotional Insights: The app helps children gain insights into their emotions, promoting self-reflection and awareness.
+•Export Functionality: Easily export anger journal entries to share with parents or family members via chat or message.
+•No Data Collection: Angry Kid respects privacy; it doesn't collect any user data, ensuring a secure and trusted experience.
+•Parent-Child Connection: Facilitates meaningful conversations between parents and children, fostering empathy and support.
+•User-Friendly Interface: Simple and intuitive design makes it easy for kids to use and navigate the app independently.
+
+Angry Kid is more than just an app; it's a companion in your child's emotional journey, promoting healthy expression and understanding of feelings. Empower your child today with Angry Kid!
+
+https://apps.apple.com/id/app/angry-kid/id6499461061
+
+Privacy Policy
 
 At Angry Kid, we prioritize your privacy and security. Here are some key points regarding the use of our app:
 
