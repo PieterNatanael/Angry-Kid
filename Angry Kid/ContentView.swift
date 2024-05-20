@@ -8,6 +8,329 @@
 import SwiftUI
 import UIKit
 
+// MARK: - Data Model for Anger Entry
+
+/// Represents an anger entry with date, text, and anger level.
+struct AngerEntry: Identifiable, Codable {
+    var id: UUID
+    let date: Date
+    var text: String
+    var angerLevel: String // Can be "Low", "Medium", or "High"
+    
+    init(id: UUID = UUID(), date: Date, text: String, angerLevel: String) {
+        self.id = id
+        self.date = date
+        self.text = text
+        self.angerLevel = angerLevel
+    }
+}
+
+// MARK: - Main App View
+
+@main
+struct AngryKidApp: App {
+    @StateObject var dataStore = DataStore()
+   
+    var body: some Scene {
+        WindowGroup {
+            ContentView(dataStore: dataStore)
+        }
+    }
+}
+
+// MARK: - Data Store for Managing Persistence
+
+/// Manages the storage and retrieval of anger entries.
+class DataStore: ObservableObject {
+    @Published var entries: [AngerEntry] = []
+    
+    init() {
+        loadEntries()
+    }
+    
+    /// Saves the current list of anger entries to UserDefaults.
+    func saveEntries() {
+        do {
+            let encodedData = try JSONEncoder().encode(entries)
+            UserDefaults.standard.set(encodedData, forKey: "angerEntries")
+            print("Entries saved successfully.")
+        } catch {
+            print("Error saving entries: \(error)")
+        }
+    }
+    
+    /// Loads the list of anger entries from UserDefaults.
+    func loadEntries() {
+        if let encodedData = UserDefaults.standard.data(forKey: "angerEntries") {
+            do {
+                let savedEntries = try JSONDecoder().decode([AngerEntry].self, from: encodedData)
+                entries = savedEntries
+                print("Entries loaded successfully.")
+            } catch {
+                print("Error loading entries: \(error)")
+            }
+        }
+    }
+    
+    /// Exports all anger entries as a formatted string.
+    func exportAllEntries() {
+        var exportString = "Export From Angry Kid\n\n"
+        exportString += entries.map { entry -> String in
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .short
+            let formattedDate = dateFormatter.string(from: entry.date)
+            return "\(formattedDate) - \(entry.text) - Anger Level: \(entry.angerLevel)"
+        }.joined(separator: "\n")
+        
+        let activityViewController = UIActivityViewController(activityItems: [exportString], applicationActivities: nil)
+        
+        UIApplication.shared.windows.first?.rootViewController?.present(activityViewController, animated: true, completion: nil)
+    }
+}
+
+// MARK: - Main Content View
+
+struct ContentView: View {
+    @ObservedObject var dataStore: DataStore
+    @State private var newText: String = ""
+    @State private var selectedAngerLevel: String = "Low"
+    @State private var showAdsAndAppFunctionality = false
+    
+    var body: some View {
+        ZStack {
+            // Background Gradient
+            LinearGradient(colors: [Color(#colorLiteral(red: 0, green: 0.5898008943, blue: 1, alpha: 1)), .clear], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+            
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showAdsAndAppFunctionality = true
+                    }) {
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(Color.white)
+                            .padding()
+                            .shadow(color: Color.black.opacity(0.6), radius: 5, x: 0, y: 2)
+                    }
+                }
+                
+                Text("Angry Kid")
+                    .font(.title.bold())
+                    .padding()
+                
+                TextField("Write down your anger here...", text: $newText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                
+                Picker(selection: $selectedAngerLevel, label: Text("Anger Level")) {
+                    Text("Low").tag("Low")
+                    Text("Medium").tag("Medium")
+                    Text("High").tag("High")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding()
+                
+                Button(action: {
+                    saveEntry()
+                    dataStore.saveEntries()
+                }) {
+                    Text("Save Anger")
+                        .font(.title2)
+                        .padding()
+                }
+                .frame(width: 233)
+                .background(Color(#colorLiteral(red: 0, green: 0.5898008943, blue: 1, alpha: 1)))
+                .cornerRadius(25)
+                .foregroundColor(.black)
+                .padding()
+                .shadow(color: Color.black.opacity(0.5), radius: 5, x: 0, y: 2)
+                
+                Button(action: {
+                    dataStore.exportAllEntries()
+                }) {
+                    Text("Export All")
+                        .font(.title2)
+                        .padding()
+                }
+                .frame(width: 233)
+                .background(Color.white)
+                .cornerRadius(25)
+                .foregroundColor(.black)
+                .padding()
+                .shadow(color: Color.black.opacity(0.5), radius: 5, x: 0, y: 2)
+                
+                List {
+                    ForEach(dataStore.entries) { entry in
+                        VStack(alignment: .leading) {
+                            Text("\(entry.date, formatter: dateFormatter)")
+                                .font(.headline)
+                            Text(entry.text)
+                                .font(.body)
+                                .foregroundColor(Color.gray)
+                            Text("Anger Level: \(entry.angerLevel)")
+                                .font(.caption)
+                                .foregroundColor(Color.red)
+                        }
+                    }
+                    .onDelete { indexSet in
+                        deleteEntry(at: indexSet)
+                        dataStore.saveEntries()
+                    }
+                }
+            }
+            .sheet(isPresented: $showAdsAndAppFunctionality) {
+                ShowExplainView(onConfirm: {
+                    showAdsAndAppFunctionality = false
+                })
+            }
+            .padding()
+            .onDisappear {
+                dataStore.saveEntries()
+            }
+        }
+    }
+    
+    /// Saves a new anger entry to the data store.
+    func saveEntry() {
+        guard !newText.isEmpty else { return }
+        let newEntry = AngerEntry(date: Date(), text: newText, angerLevel: selectedAngerLevel)
+        dataStore.entries.append(newEntry)
+        newText = ""
+    }
+    
+    /// Deletes an anger entry from the data store.
+    func deleteEntry(at offsets: IndexSet) {
+        dataStore.entries.remove(atOffsets: offsets)
+    }
+    
+    /// Date formatter for displaying dates.
+    var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }
+}
+
+// MARK: - Preview
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView(dataStore: DataStore())
+    }
+}
+
+// MARK: - Ads and App functionality
+
+/// View that show ads and the app's functionality
+struct ShowExplainView: View {
+    var onConfirm: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack {
+                HStack {
+                    Text("Ads & App Functionality")
+                        .font(.title3.bold())
+                    Spacer()
+                }
+                Divider().background(Color.gray)
+                
+                // Ads Section
+                VStack {
+                    HStack {
+                        Text("Ads")
+                            .font(.largeTitle.bold())
+                        Spacer()
+                    }
+                    ZStack {
+                        Image("threedollar")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .cornerRadius(25)
+                            .clipped()
+                            .onTapGesture {
+                                if let url = URL(string: "https://b33.biz/three-dollar/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }
+                    }
+                    // Ads App Cards
+                    VStack {
+                        Divider().background(Color.gray)
+                        AppCardView(imageName: "bodycam", appName: "BODYCam", appDescription: "Record videos effortlessly and discreetly.", appURL: "https://apps.apple.com/id/app/b0dycam/id6496689003")
+                        Divider().background(Color.gray)
+                        AppCardView(imageName: "timetell", appName: "TimeTell", appDescription: "Announce the time every 30 seconds, no more guessing and checking your watch, for time-sensitive tasks.", appURL: "https://apps.apple.com/id/app/loopspeak/id6473384030")
+                        Divider().background(Color.gray)
+                        AppCardView(imageName: "SingLoop", appName: "Sing LOOP", appDescription: "Record your voice effortlessly, and play it back in a loop.", appURL: "https://apps.apple.com/id/app/sing-l00p/id6480459464")
+                        Divider().background(Color.gray)
+                        AppCardView(imageName: "loopspeak", appName: "LOOPSpeak", appDescription: "Type or paste your text, play in loop, and enjoy hands-free narration.", appURL: "https://apps.apple.com/id/app/loopspeak/id6473384030")
+                        Divider().background(Color.gray)
+                        AppCardView(imageName: "insomnia", appName: "Insomnia Sheep", appDescription: "Design to ease your mind and help you relax leading up to sleep.", appURL: "https://apps.apple.com/id/app/insomnia-sheep/id6479727431")
+                        Divider().background(Color.gray)
+                        AppCardView(imageName: "dryeye", appName: "Dry Eye Read", appDescription: "Read content on screen easily and comfortably without stressing your eyes.", appURL: "https://apps.apple.com/id/app/dry-eye-read/id6449525064")
+                        Divider().background(Color.gray)
+                        AppCardView(imageName: "CatSounds", appName: "Cat Sounds", appDescription: "Cat Sounds Meow for cat lovers.", appURL: "https://apps.apple.com/id/app/cat-sounds-meow/id6447413502")
+                    }
+                }
+                Divider().background(Color.gray)
+                Spacer()
+            }
+        }
+        .padding()
+    }
+}
+
+/// Custom view for displaying an app card.
+struct AppCardView: View {
+    let imageName: String
+    let appName: String
+    let appDescription: String
+    let appURL: String
+
+    var body: some View {
+        HStack {
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 70, height: 70)
+                .cornerRadius(8)
+                .clipped()
+            VStack(alignment: .leading) {
+                Text(appName)
+                    .font(.headline)
+                Text(appDescription)
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+            Spacer()
+            Button(action: {
+                if let url = URL(string: appURL) {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                Text("Get")
+                    .font(.subheadline)
+                    .padding(8)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+
+/*
+
+//great but want to improve
+import SwiftUI
+import UIKit
+
 // Data Model for Anger Entry
 struct AngerEntry: Identifiable, Codable {
     var id: UUID
@@ -380,6 +703,8 @@ struct AppCardView: View {
         }
     }
 }
+
+*/
 /*
 //well but want to add adview on it
 import SwiftUI
