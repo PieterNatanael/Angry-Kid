@@ -14,6 +14,7 @@ Angry Kid is more than just an app; it's a companion in your child's emotional j
 
 https://apps.apple.com/id/app/angry-kid/id6499461061
 
+
 Privacy Policy
 
 At Angry Kid, we prioritize your privacy and security. Here are some key points regarding the use of our app:
